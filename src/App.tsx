@@ -1,11 +1,11 @@
-// App.jsx
 import React, { useState } from 'react';
 import './App.css'; // Import custom CSS file
 import {
   GridContextProvider,
   GridDropZone,
   GridItem,
-  swap
+  swap,
+  move
 } from "react-grid-dnd";
 
 function App() {
@@ -21,38 +21,46 @@ function App() {
     { id: 9, name: 'Card 9' },
   ]);
 
+  // Define items state to keep track of cards in each drop zone
+  const [items, setItems] = useState({
+    'drop-source': [],
+    'drop-load': [],
+    'drop-path': []
+  });
+
   function onChange(sourceId, sourceIndex, targetIndex, targetId) {
-    // Get the card being dragged
-    const draggedCard = cards[sourceIndex];
-  
-    // Determine the target drop zone
-    let newCards = [...cards];
     if (targetId) {
-      // If dropping into a drop zone
-      const targetIndexInZone = targetIndex % 3; // Get index within the drop zone
-      const targetZoneIndex = Math.floor(targetIndex / 3); // Get drop zone index
-  
-      // Remove the card from the source
-      newCards.splice(sourceIndex, 1);
-  
-      // Insert the card into the target drop zone
-      const insertIndex = targetZoneIndex * 3 + targetIndexInZone;
-      newCards.splice(insertIndex, 0, draggedCard);
+      const sourceList = sourceId === 'card-zone' ? cards : items[sourceId];
+      const targetList = targetId === 'card-zone' ? cards : items[targetId];
+      const result = move(sourceList, targetList, sourceIndex, targetIndex);
+      
+      if (sourceId === 'card-zone') {
+        setCards(result);
+      } else {
+        setItems({
+          ...items,
+          [sourceId]: result[0],
+          [targetId]: result[1]
+        });
+      }
     } else {
-      // If dropping back to the card zone, simply swap positions
-      newCards = swap(cards, sourceIndex, targetIndex);
+      const result = swap(cards, sourceIndex, targetIndex);
+      setCards(result);
     }
-  
-    // Update the state with the new card positions
-    setCards(newCards);
   }
-  
 
   const dropZoneStyle = {
-    height: '400px',
+    height: '200px',
     border: '1px solid #ccc',
-    padding: '10px',
     borderRadius: '5px',
+    width: '400px'
+  };
+
+  const dropZoneStyle1 = {
+    height: '600px',
+    border: '1px solid #ccc',
+    borderRadius: '5px',
+    width: '400px'
   };
 
   return (
@@ -61,41 +69,35 @@ function App() {
         <h2>Drop Zone</h2>
         <GridContextProvider onChange={onChange}>
           <GridDropZone id="drop-source" boxesPerRow={3} rowHeight={100} style={dropZoneStyle}>
-            <div className="drop-row">
-              <button>Source</button>
-              {[1, 2, 3].map(index => (
-                <GridItem key={`source-${index}`}>
-                  <div className="drop-item"></div>
-                </GridItem>
-              ))}
-            </div>
+            {[1, 2, 3].map(index => (
+              <GridItem key={`source-${index}`}>
+                <button>Source</button>
+                <div className="drop-item"></div>
+              </GridItem>
+            ))}
           </GridDropZone>
           <GridDropZone id="drop-load" boxesPerRow={3} rowHeight={100} style={dropZoneStyle}>
-            <div className="drop-row">
-              <button>Load</button>
-              {[1, 2, 3].map(index => (
-                <GridItem key={`load-${index}`}>
-                  <div className="drop-item"></div>
-                </GridItem>
-              ))}
-            </div>
+            {[1, 2, 3].map(index => (
+              <GridItem key={`load-${index}`}>
+                <button>Load</button>
+                <div className="drop-item"></div>
+              </GridItem>
+            ))}
           </GridDropZone>
           <GridDropZone id="drop-path" boxesPerRow={3} rowHeight={100} style={dropZoneStyle}>
-            <div className="drop-row">
-              <button>Path</button>
-              {[1, 2, 3].map(index => (
-                <GridItem key={`path-${index}`}>
-                  <div className="drop-item"></div>
-                </GridItem>
-              ))}
-            </div>
+            {[1, 2, 3].map(index => (
+              <GridItem key={`path-${index}`}>
+                <button>Path</button>
+                <div className="drop-item"></div>
+              </GridItem>
+            ))}
           </GridDropZone>
         </GridContextProvider>
       </div>
       <div className="column card-zone-column">
         <h2>Card Zone</h2>
         <GridContextProvider>
-          <GridDropZone id="card-zone" boxesPerRow={3} rowHeight={100} style={dropZoneStyle}>
+          <GridDropZone id="card-zone" boxesPerRow={3} rowHeight={100} style={dropZoneStyle1}>
             {cards.map(card => (
               <GridItem key={card.id}>
                 <div className="card-item">{card.name}</div>
