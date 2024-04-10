@@ -1,0 +1,65 @@
+/* App.css */
+.container {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-top: 50px;
+}
+
+.column {
+  flex: 0 0 48%; /* Set column width to half of the screen */
+}
+
+.drop-zone-column {
+  margin-right: 10px;
+}
+
+.card-zone-column {
+  margin-left: 10px;
+}
+
+.drop-row {
+  display: flex;
+  align-items: center;
+}
+
+.drop-row button {
+  margin-right: 10px;
+}
+
+.drop-item {
+  border: 1px solid #ccc;
+  width: 80px;
+  height: 80px;
+  margin-right: 10px;
+}
+
+.card-item {
+  border: 1px solid #ccc;
+  width: 80px;
+  height: 80px;
+  margin-bottom: 10px;
+}
+
+.buttons {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.check-button {
+  background-color: green;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  margin-right: 10px;
+  cursor: pointer;
+}
+
+.reset-button {
+  background-color: yellow;
+  color: black;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+}
