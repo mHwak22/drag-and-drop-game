@@ -1,116 +1,225 @@
-import React, { useState } from 'react';
-import './App.css'; // Import custom CSS file
+import React from "react";
 import {
   GridContextProvider,
   GridDropZone,
   GridItem,
-  swap,
-  move
+  move,
 } from "react-grid-dnd";
 
+import "./App.css";
+import { correctAnswers, initialItems } from "./itemsData";
+import toast, { Toaster } from "react-hot-toast";
+
 function App() {
-  const [cards, setCards] = useState([
-    { id: 1, name: 'Card 1' },
-    { id: 2, name: 'Card 2' },
-    { id: 3, name: 'Card 3' },
-    { id: 4, name: 'Card 4' },
-    { id: 5, name: 'Card 5' },
-    { id: 6, name: 'Card 6' },
-    { id: 7, name: 'Card 7' },
-    { id: 8, name: 'Card 8' },
-    { id: 9, name: 'Card 9' },
-  ]);
+  const [items, setItems] = React.useState<any>(initialItems);
 
-  // Define items state to keep track of cards in each drop zone
-  const [items, setItems] = useState({
-    'drop-source': [],
-    'drop-load': [],
-    'drop-path': []
-  });
+  // function onChange(
+  //   sourceId: string,
+  //   sourceIndex: number,
+  //   targetIndex: number,
+  //   targetId: string
+  // ) {
+  //   if (targetId) {
+  //     const result = move(
+  //       items[sourceId],
+  //       items[targetId],
+  //       sourceIndex,
+  //       targetIndex
+  //     );
+  //     return setItems({
+  //       ...items,
+  //       [sourceId]: result[0],
+  //       [targetId]: result[1],
+  //     });
+  //   }
+  // }
 
-  function onChange(sourceId, sourceIndex, targetIndex, targetId) {
+  function onChange(
+    sourceId: string,
+    sourceIndex: number,
+    targetIndex: number,
+    targetId: string
+  ) {
+    // If source and target are the same, or target dropzone is full, exit early
+    if (sourceId === targetId || (targetId && items[targetId].length >= 3)) {
+      return;
+    }
+  
     if (targetId) {
-      const sourceList = sourceId === 'card-zone' ? cards : items[sourceId];
-      const targetList = targetId === 'card-zone' ? cards : items[targetId];
-      const result = move(sourceList, targetList, sourceIndex, targetIndex);
+      const result = move(
+        items[sourceId],
+        items[targetId],
+        sourceIndex,
+        targetIndex
+      );
       
-      if (sourceId === 'card-zone') {
-        setCards(result);
-      } else {
-        setItems({
-          ...items,
-          [sourceId]: result[0],
-          [targetId]: result[1]
-        });
-      }
+      return setItems({
+        ...items,
+        [sourceId]: result[0],
+        [targetId]: result[1],
+      });
     } else {
-      const result = swap(cards, sourceIndex, targetIndex);
-      setCards(result);
+      // Moving within the same drop zone
+      const newItems = [...items[sourceId]];
+      const [removed] = newItems.splice(sourceIndex, 1);
+      newItems.splice(targetIndex, 0, removed);
+      
+      return setItems({
+        ...items,
+        [sourceId]: newItems,
+      });
+    }
+  }
+  
+  
+  
+  
+
+  function compareArrays(arr1: any[], arr2: any[]): boolean {
+    if (arr1.length !== arr2.length) {
+      return false;
+    }
+
+    const copyArr1 = [...arr1];
+    const copyArr2 = [...arr2];
+
+    copyArr1.sort((a, b) => a.name.localeCompare(b.name));
+    copyArr2.sort((a, b) => a.name.localeCompare(b.name));
+
+    for (let i = 0; i < copyArr1.length; i++) {
+      if (copyArr1[i].name !== copyArr2[i].name) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  function checkAnswers() {
+    const sourceMatch = compareArrays(items.source, correctAnswers.source);
+    const loadMatch = compareArrays(items.load, correctAnswers.load);
+    const pathMatch = compareArrays(items.path, correctAnswers.path);
+
+    if (sourceMatch) {
+      toast.success("Source is correct");
+    } else {
+      toast.error("Source is incorrect");
+    }
+
+    if (loadMatch) {
+      toast.success("Load is correct");
+    } else {
+      toast.error("Load is incorrect");
+    }
+
+    if (pathMatch) {
+      toast.success("Path is correct");
+    } else {
+      toast.error("Path is incorrect");
     }
   }
 
-  const dropZoneStyle = {
-    height: '200px',
-    border: '1px solid #ccc',
-    borderRadius: '5px',
-    width: '400px'
-  };
-
-  const dropZoneStyle1 = {
-    height: '600px',
-    border: '1px solid #ccc',
-    borderRadius: '5px',
-    width: '400px'
-  };
+  function resetGame() {
+    console.log("Resetting the game...");
+    setItems(initialItems);
+  }
 
   return (
-    <div className="container">
-      <div className="column drop-zone-column">
-        <h2>Drop Zone</h2>
-        <GridContextProvider onChange={onChange}>
-          <GridDropZone id="drop-source" boxesPerRow={3} rowHeight={100} style={dropZoneStyle}>
-            {[1, 2, 3].map(index => (
-              <GridItem key={`source-${index}`}>
-                <button>Source</button>
-                <div className="drop-item"></div>
+    <>
+      <Toaster position="top-center" reverseOrder={false} />
+      <GridContextProvider onChange={onChange}>
+        <div className="container">
+          <div className="dropzone-container">
+            <GridDropZone
+              className="dropzone"
+              id="source"
+              boxesPerRow={4}
+              rowHeight={70}
+            >
+              <div className="drop-name">
+                <button className="name-btn">Source</button>
+              </div>
+                {items.source.map((item) => (
+                  <GridItem key={item.name}>
+                    <div className="grid-item">
+                      <div className="grid-item-content">
+                        <img width={50} height={50} src={item.image} alt="" />
+                        <p>{item.name}</p>
+                      </div>
+                    </div>
+                  </GridItem>
+                ))}
+            </GridDropZone>
+            <GridDropZone
+              className="dropzone"
+              id="load"
+              boxesPerRow={4}
+              rowHeight={70}
+            >
+              <div className="drop-name">
+                <button className="name-btn">Load</button>
+              </div>
+                {items.load.map((item) => (
+                  <GridItem key={item.name}>
+                    <div className="grid-item">
+                      <div className="grid-item-content">
+                        <img width={50} height={50} src={item.image} alt="" />
+                        <p>{item.name}</p>
+                      </div>
+                    </div>
+                  </GridItem>
+                ))}
+            </GridDropZone>
+            <GridDropZone
+              className="dropzone"
+              id="path"
+              boxesPerRow={4}
+              rowHeight={70}
+            >
+              <div className="drop-name">
+                <button className="name-btn">Path</button>
+              </div>
+                {items.path.map((item) => (
+                  <GridItem key={item.name}>
+                    <div className="grid-item">
+                      <div className="grid-item-content">
+                        <img width={50} height={50} src={item.image} alt="" />
+                        <p>{item.name}</p>
+                      </div>
+                    </div>
+                  </GridItem>
+                ))}
+            </GridDropZone>
+          </div>
+          <GridDropZone
+            className="dropzone right"
+            id="right"
+            boxesPerRow={3}
+            rowHeight={150}
+          >
+            {items.right.map((item) => (
+              <GridItem key={item.name}>
+                <div className="grid-item">
+                  <div className="grid-item-content">
+                    <img width={50} height={50} src={item.image} alt="" />
+                    <p>{item.name}</p>
+                  </div>
+                </div>
               </GridItem>
             ))}
           </GridDropZone>
-          <GridDropZone id="drop-load" boxesPerRow={3} rowHeight={100} style={dropZoneStyle}>
-            {[1, 2, 3].map(index => (
-              <GridItem key={`load-${index}`}>
-                <button>Load</button>
-                <div className="drop-item"></div>
-              </GridItem>
-            ))}
-          </GridDropZone>
-          <GridDropZone id="drop-path" boxesPerRow={3} rowHeight={100} style={dropZoneStyle}>
-            {[1, 2, 3].map(index => (
-              <GridItem key={`path-${index}`}>
-                <button>Path</button>
-                <div className="drop-item"></div>
-              </GridItem>
-            ))}
-          </GridDropZone>
-        </GridContextProvider>
-      </div>
-      <div className="column card-zone-column">
-        <h2>Card Zone</h2>
-        <GridContextProvider>
-          <GridDropZone id="card-zone" boxesPerRow={3} rowHeight={100} style={dropZoneStyle1}>
-            {cards.map(card => (
-              <GridItem key={card.id}>
-                <div className="card-item">{card.name}</div>
-              </GridItem>
-            ))}
-          </GridDropZone>
-        </GridContextProvider>
-      </div>
+        </div>
+      </GridContextProvider>
+
       <div className="buttons">
-        <button className="check-button">CHECK</button>
-        <button className="reset-button">RESET</button>
+        <button className="check-button" onClick={checkAnswers}>
+          CHECK
+        </button>
+        <button className="reset-button" onClick={resetGame}>
+          RESET
+        </button>
       </div>
-    </div>
+    </>
   );
 }
 
