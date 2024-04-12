@@ -38,7 +38,7 @@ function App() {
     sourceId: string,
     sourceIndex: number,
     targetIndex: number,
-    targetId: string
+    targetId?: string
   ) {
     // If source and target are the same, or target dropzone is full, exit early
     if (sourceId === targetId || (targetId && items[targetId].length >= 3)) {
@@ -139,7 +139,7 @@ function App() {
               <div className="drop-name">
                 <button className="name-btn">Source</button>
               </div>
-                {items.source.map((item) => (
+                {items.source.map((item:any) => (
                   <GridItem key={item.name}>
                     <div className="grid-item">
                       <div className="grid-item-content">
@@ -159,7 +159,7 @@ function App() {
               <div className="drop-name">
                 <button className="name-btn">Load</button>
               </div>
-                {items.load.map((item) => (
+                {items.load.map((item:any) => (
                   <GridItem key={item.name}>
                     <div className="grid-item">
                       <div className="grid-item-content">
@@ -179,7 +179,7 @@ function App() {
               <div className="drop-name">
                 <button className="name-btn">Path</button>
               </div>
-                {items.path.map((item) => (
+                {items.path.map((item:any) => (
                   <GridItem key={item.name}>
                     <div className="grid-item">
                       <div className="grid-item-content">
@@ -197,7 +197,7 @@ function App() {
             boxesPerRow={3}
             rowHeight={150}
           >
-            {items.right.map((item) => (
+            {items.right.map((item:any) => (
               <GridItem key={item.name}>
                 <div className="grid-item">
                   <div className="grid-item-content">
